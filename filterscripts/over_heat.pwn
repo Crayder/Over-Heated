@@ -52,7 +52,7 @@ Special Thanks:
 #define FILTERSCRIPT
 
 #include <a_samp>
-#include <a_bars>
+#include <progress2>
 #include <foreach>
 
 #define PRESSED(%0) (((newkeys & (%0)) == (%0)) && ((oldkeys & (%0)) != (%0)))
