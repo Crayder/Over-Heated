@@ -53,7 +53,7 @@ Special Thanks:
 
 #include <a_samp>
 #include <progress2>
-#include <foreach>
+#include <YSI\y_iterate>
 
 #define PRESSED(%0) (((newkeys & (%0)) == (%0)) && ((oldkeys & (%0)) != (%0)))
 #define HOLDING(%0) ((newkeys & (%0)) == (%0))
@@ -81,17 +81,10 @@ new RGY[100] = {
 	0xFF8F00FF,0xFF7F00FF,0xFF6F00FF,0xFF5F00FF,0xFF4F00FF,0xFF3F00FF,0xFF2F00FF,0xFF1F00FF,0xFF0F00FF,0xFF0000FF
 };
 
-public OnFilterScriptInit()
-{
-	return 1;
-}
-
 public OnFilterScriptExit()
 {
-	foreach(new playerid : Player)
-	{
-		if(HidePlayerProgressBar(playerid, SparrowHeatBar[playerid]))
-		{
+	foreach(new playerid : Player) {
+		if(HidePlayerProgressBar(playerid, SparrowHeatBar[playerid])) {
 			DestroyPlayerProgressBar(playerid, SparrowHeatBar[playerid]);
 			IsInSparrow[playerid] = false;
 		}
@@ -108,12 +101,10 @@ public OnFilterScriptExit()
 
 public OnPlayerStateChange(playerid, newstate, oldstate)
 {
-	if(newstate == PLAYER_STATE_DRIVER)
-	{
-		new vehicleid = GetPlayerVehicleID(playerid), vehiclemodel = GetVehicleModel(vehicleid);
+	if(newstate == PLAYER_STATE_DRIVER) {
+		new vehicleid = GetPlayerVehicleID(playerid);
 		
-		if(vehiclemodel == 447)
-		{
+		if(GetVehicleModel(vehicleid) == 447) {
 			IsInSparrow[playerid] = true;
 		
 			SparrowHeatBar[playerid] = CreatePlayerProgressBar(playerid, 157.000000, 423.000000, 12.000000, 86.000000, RGY[0], 100.000000, BAR_DIRECTION_UP);
@@ -124,8 +115,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			ShowPlayerProgressBar(playerid, SparrowHeightBar[playerid]);
 			#endif
 			
-			if(SparrowHeat[vehicleid] > 0)
-			{
+			if(SparrowHeat[vehicleid] > 0) {
 				KillTimer(SparrowCoolingTimer[vehicleid]);
 				SparrowCoolingTimer[vehicleid] = SetTimerEx("CoolSparrowHeat", 500, false, "i", vehicleid, playerid);
 				CoolingSparrow[vehicleid] = true;
@@ -134,10 +124,8 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		
 		pVehicle[playerid] = vehicleid;
 	}
-	else
-	{
-		if(HidePlayerProgressBar(playerid, SparrowHeatBar[playerid]))
-		{
+	else {
+		if(HidePlayerProgressBar(playerid, SparrowHeatBar[playerid])) {
 			DestroyPlayerProgressBar(playerid, SparrowHeatBar[playerid]);
 			IsInSparrow[playerid] = false;
 		}
@@ -159,17 +147,16 @@ public OnVehicleDeath(vehicleid, killerid)
 	KillTimer(SparrowCoolingTimer[vehicleid]);
 	
 	foreach(new i : Player) if(pVehicle[i] == vehicleid) 
-	{
 		pVehicle[i] = INVALID_VEHICLE_ID;
 		break;
 	}
 	return 1;
 }
 
-stock SetSparrowHeatBarLevel(playerid)
+SetSparrowHeatBarLevel(playerid)
 {
 	SetPlayerProgressBarValue(playerid, SparrowHeatBar[playerid], float(SparrowHeat[pVehicle[playerid]]));
-	SetPlayerProgressBarColour(playerid, SparrowHeatBar[playerid], RGY[SparrowHeat[pVehicle[playerid]]-1]);
+	SetPlayerProgressBarColour(playerid, SparrowHeatBar[playerid], RGY[SparrowHeat[pVehicle[playerid]] - 1]);
 	return UpdatePlayerProgressBar(playerid, SparrowHeatBar[playerid]);
 }
 
@@ -178,62 +165,61 @@ public OnPlayerHoldingKey(playerid, key)
 {
 	KillTimer(SparrowCoolingTimer[pVehicle[playerid]]);
 	CoolingSparrow[pVehicle[playerid]] = false;
-	if(key == KEY_ACTION && IsInSparrow[playerid])
-	{
+	if(key == KEY_ACTION && IsInSparrow[playerid]) {
 		SparrowHeat[pVehicle[playerid]]++;
-		if(SparrowHeat[pVehicle[playerid]] >= 100 && SparrowHeat[pVehicle[playerid]]%25 == 0)
-		{
+		if(SparrowHeat[pVehicle[playerid]] >= 100 && SparrowHeat[pVehicle[playerid]] % 25 == 0) {
 			new Float:H; GetVehicleHealth(pVehicle[playerid], H);
-			SetVehicleHealth(pVehicle[playerid], H-DAMAGE_FIRE);
+			SetVehicleHealth(pVehicle[playerid], H - DAMAGE_FIRE);
 		}
 		SetSparrowHeatBarLevel(playerid);
 	}
 	return 1;
 }
+
 forward OnPlayerStopHoldingKey(playerid, key);
 public OnPlayerStopHoldingKey(playerid, key)
 {
-	if(key == KEY_ACTION && IsInSparrow[playerid])
-	{
+	if(key == KEY_ACTION && IsInSparrow[playerid]) {
 		SparrowCoolingTimer[pVehicle[playerid]] = SetTimerEx("CoolSparrowHeat", 500, false, "iu", pVehicle[playerid], playerid);
 	}
 	return 1;
 }
+
 forward CoolSparrowHeat(vehicleid, playerid);
 public CoolSparrowHeat(vehicleid, playerid)
 {
-	if(SparrowHeat[vehicleid]-1 < 0) SparrowHeat[vehicleid]=0;
-	else  SparrowHeat[vehicleid]--;
+	if(SparrowHeat[vehicleid]-1 < 0)
+		SparrowHeat[vehicleid] = 0;
+	else
+		SparrowHeat[vehicleid]--;
 	
-	if(SparrowHeat[vehicleid] > 0)
-	{
+	if(SparrowHeat[vehicleid] > 0) {
 		SparrowCoolingTimer[vehicleid] = SetTimerEx("CoolSparrowHeat", 500, false, "i", vehicleid, playerid);
 		CoolingSparrow[vehicleid] = true;
 	}
-	if(SparrowHeat[vehicleid] > 100)
-	{
-		new Float:H; GetVehicleHealth(vehicleid, H);
-		SetVehicleHealth(vehicleid, ((SparrowHeat[vehicleid] >= 200) ? 0.0 : H-DAMAGE_COOL));
+	if(SparrowHeat[vehicleid] > 100) {
+		new Float:H;
+		GetVehicleHealth(vehicleid, H);
+		SetVehicleHealth(vehicleid, ((SparrowHeat[vehicleid] >= 200) ? 0.0 : H - DAMAGE_COOL));
 	}
 	else if(SparrowHeat[vehicleid] <= 0)
 		CoolingSparrow[vehicleid] = false;
 		
 	SetSparrowHeatBarLevel(playerid);
 }
+
 forward IsPlayerHoldingKey(playerid, key);
 public IsPlayerHoldingKey(playerid, key)
 {
 	new keys, ud, lr;
 	GetPlayerKeys(playerid, keys, ud, lr);
 
-	if(GPKHOLDING(key))
-	{
+	if(GPKHOLDING(key)) {
 		HoldingKey[playerid] = true;
 		CallLocalFunction("OnPlayerHoldingKey", "ui", playerid, key);
 		SetTimerEx("IsPlayerHoldingKey", 50, false, "ui", playerid, key);
 	}
-	else
-	{
+	else {
 		HoldingKey[playerid] = false;
 		CallLocalFunction("OnPlayerStopHoldingKey", "ui", playerid, key);
 	}
@@ -243,6 +229,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
 	if(PRESSED(KEY_ACTION))
 		return SetTimerEx("IsPlayerHoldingKey", 50, false, "ui", playerid, KEY_ACTION);
+	
 	return 1;
 }
 
@@ -250,17 +237,16 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 public OnPlayerUpdate(playerid)
 {
-	if(IsInSparrow[playerid])
-	{
+	if(IsInSparrow[playerid]) {
 		new Float:Z, Float:H; 
 		GetVehiclePos(pVehicle[playerid], Z, Z, Z);
 		GetVehicleHealth(pVehicle[playerid], H);
 		
-		H = (Z >= HEIGHT_HIGH) ? H-HEIGHT_H_DAMAGE : (Z >= HEIGHT_MEDIUM) ? H-HEIGHT_M_DAMAGE : H;
+		H = (Z >= HEIGHT_HIGH) ? H - HEIGHT_H_DAMAGE : (Z >= HEIGHT_MEDIUM) ? H - HEIGHT_M_DAMAGE : H;
 		SetVehicleHealth(pVehicle[playerid], (H < 0.0 ? 0.0 : H));
 		
 		SetPlayerProgressBarValue(playerid, SparrowHeightBar[playerid], Z);
-		SetPlayerProgressBarColour(playerid, SparrowHeightBar[playerid], RGY[floatround((Z/HEIGHT_HIGH)*100)-1]);
+		SetPlayerProgressBarColour(playerid, SparrowHeightBar[playerid], RGY[floatround((Z / HEIGHT_HIGH) * 100) - 1]);
 		UpdatePlayerProgressBar(playerid, SparrowHeightBar[playerid]);
 	}
 	return 1;
@@ -271,8 +257,6 @@ public OnPlayerUpdate(playerid)
 //****************
 
 #if defined Sparrow_Tail_Credits
-
-Welcome to the Craytive Craydonation! (Creative Cray-Nation :P)
 
 Description:
 					This script was designed for DM/TDM servers, well, the ones
@@ -304,15 +288,17 @@ Special Thanks:
 
 #if DEATH_TAIL
 
-new Float:SparrowTail[3] = {0.00,-6.50,0.74};
+new Float:SparrowTail[3] = {0.00, -6.50, 0.74};
 
 public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ)
 {
-    if(	hittype == BULLET_HIT_TYPE_VEHICLE && GetVehicleModel(hitid) == 447
-		&& fX >= SparrowTail[0]-0.91 && fX <= SparrowTail[0]+0.91
-		&& fY >= SparrowTail[1]-0.91 && fY <= SparrowTail[1]+0.91
-		&& fZ >= SparrowTail[2]-0.92 && fZ <= SparrowTail[2]+0.92)
+    if(	hittype == BULLET_HIT_TYPE_VEHICLE &&
+		GetVehicleModel(hitid) == 447 &&
+		fX >= SparrowTail[0] - 0.91 && fX <= SparrowTail[0] + 0.91 &&
+		fY >= SparrowTail[1] - 0.91 && fY <= SparrowTail[1] + 0.91 &&
+		fZ >= SparrowTail[2] - 0.92 && fZ <= SparrowTail[2] + 0.92)
 		SetVehicleHealth(hitid, 0);
+	
 	return 1;
 }
 
